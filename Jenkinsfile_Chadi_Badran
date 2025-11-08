@@ -1,46 +1,72 @@
 pipeline {
   agent any
-  environment { VIRTUAL_ENV = 'venv' }
+  environment {
+    VIRTUAL_ENV = 'venv'
+    PY = 'py -3'     
 
   stages {
     stage('Setup') {
       steps {
-        script {
-          if (!fileExists("${env.WORKSPACE}/${VIRTUAL_ENV}")) {
-            sh "python3 -m venv ${VIRTUAL_ENV} || python -m venv ${VIRTUAL_ENV}"
-          }
-          sh "source ${VIRTUAL_ENV}/bin/activate && pip install -r requirements.txt"
-        }
+        bat """
+          if not exist %VIRTUAL_ENV% %PY% -m venv %VIRTUAL_ENV%
+          call %VIRTUAL_ENV%\\Scripts\\activate
+          %PY% -m pip install --upgrade pip
+          %PY% -m pip install -r requirements.txt
+        """
       }
     }
 
     stage('Lint') {
       steps {
-        script {
-          sh "source ${VIRTUAL_ENV}/bin/activate && flake8 app.py"
-        }
+        bat """
+          call %VIRTUAL_ENV%\\Scripts\\activate
+          flake8 app.py
+        """
       }
     }
 
     stage('Test') {
       steps {
-        script {
-          sh "source ${VIRTUAL_ENV}/bin/activate && pytest"
-        }
+        bat """
+          call %VIRTUAL_ENV%\\Scripts\\activate
+          pytest -q
+        """
+      }
+    }
+
+    stage('Coverage') {
+      steps {
+        bat """
+          call %VIRTUAL_ENV%\\Scripts\\activate
+          coverage run -m pytest
+          coverage xml -o coverage.xml
+        """
+
+        publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+      }
+    }
+
+    stage('Security Scan') {
+      steps {
+        bat """
+          call %VIRTUAL_ENV%\\Scripts\\activate
+          bandit -r . -ll -iii
+        """
       }
     }
 
     stage('Deploy') {
       steps {
-        script {
-            // Deployment logic, e.g., pushing to a remote server
-          echo "Deploying application..."
-        }
+        bat """
+          echo Deploying application...
+        """
       }
     }
   }
 
   post {
-    always { cleanWs() }
+    always {
+      cleanWs()
+    }
   }
 }
