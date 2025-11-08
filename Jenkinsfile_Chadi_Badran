@@ -2,9 +2,11 @@ pipeline {
   agent any
   environment {
     VIRTUAL_ENV = 'venv'
-    PY = 'py -3'     
+    PY = 'py -3'   // use 'python' if you prefer and it's on PATH
+  }
 
   stages {
+
     stage('Setup') {
       steps {
         bat """
@@ -41,7 +43,7 @@ pipeline {
           coverage run -m pytest
           coverage xml -o coverage.xml
         """
-
+        // requires the "Coverage" plugin; otherwise comment next line
         publishCoverage adapters: [cobertura('coverage.xml')], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
       }
     }
@@ -57,11 +59,10 @@ pipeline {
 
     stage('Deploy') {
       steps {
-        bat """
-          echo Deploying application...
-        """
+        bat "echo Deploying application..."
       }
     }
+
   }
 
   post {
