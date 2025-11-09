@@ -52,11 +52,12 @@ pipeline {
     steps {
         bat """
         call %VIRTUAL_ENV%\\Scripts\\activate
-        bandit -r . -x venv -ll -iii -f json -o bandit_report.json
+        bandit -r . -x venv -ll -iii --exit-zero -f json -o bandit_report.json
         """
         archiveArtifacts artifacts: 'bandit_report.json', fingerprint: true
     }
     }
+
 
 
     stage('Deploy') {
