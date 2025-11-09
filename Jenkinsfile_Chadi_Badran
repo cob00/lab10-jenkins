@@ -38,15 +38,14 @@ pipeline {
     }
 
     stage('Coverage') {
-      steps {
+    steps {
         bat """
-          call %VIRTUAL_ENV%\\Scripts\\activate
-          coverage run -m pytest
-          coverage xml -o coverage.xml
+        call %VIRTUAL_ENV%\\Scripts\\activate
+        coverage run -m pytest
+        coverage xml -o coverage.xml
         """
-        publishCoverage adapters: [coberturaAdapter('coverage.xml')], sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
-
-      }
+        archiveArtifacts artifacts: 'coverage.xml', fingerprint: true
+    }
     }
 
     stage('Security Scan') {
