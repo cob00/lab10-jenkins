@@ -2,7 +2,8 @@ pipeline {
   agent any
   environment {
     VIRTUAL_ENV = 'venv'
-    PY = 'py -3'   // use 'python' if you prefer and it's on PATH
+    PY = 'py -3'
+    PYTHONPATH = "${WORKSPACE}"
   }
 
   stages {
